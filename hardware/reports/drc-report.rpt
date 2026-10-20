@@ -1,0 +1,33 @@
+** Drc report for MacroPad.kicad_pcb **
+** Created on 2026-10-19T19:22:38 **
+** Report includes: Errors, Warnings, Exclusions **
+
+** Found 5 DRC violations **
+[lib_footprint_mismatch]: Footprint 'RaspberryPi_Pico_Common_THT' does not match copy in library 'Module'
+    Local override; warning
+    @(116.1100 mm, 94.0000 mm): Footprint A1
+[lib_footprint_mismatch]: Footprint 'MountingHole_2.2mm_M2' does not match copy in library 'MountingHole'
+    Local override; warning
+    @(100.0000 mm, 53.0000 mm): Footprint H1
+[lib_footprint_mismatch]: Footprint 'MountingHole_2.2mm_M2' does not match copy in library 'MountingHole'
+    Local override; warning
+    @(150.0000 mm, 53.0000 mm): Footprint H2
+[lib_footprint_mismatch]: Footprint 'MountingHole_2.2mm_M2' does not match copy in library 'MountingHole'
+    Local override; warning
+    @(100.0000 mm, 142.0000 mm): Footprint H3
+[lib_footprint_mismatch]: Footprint 'MountingHole_2.2mm_M2' does not match copy in library 'MountingHole'
+    Local override; warning
+    @(150.0000 mm, 142.0000 mm): Footprint H4
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

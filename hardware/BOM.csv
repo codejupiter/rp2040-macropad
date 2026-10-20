@@ -1,0 +1,9 @@
+Quantity,References,Description,Footprint,Notes
+1,A1,Raspberry Pi Pico RP2040,Module:RaspberryPi_Pico_Common_THT,Original Pico form factor
+4,SW1 SW2 SW3 SW4,MX-compatible mechanical switch,Button_Switch_Keyboard:SW_Cherry_MX_1.00u_PCB,PCB-mount or plate-mount
+4,D1 D2 D3 D4,1N4148 small-signal diode,Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal,Stripe/cathode faces K and row net
+4,H1 H2 H3 H4,M2 mounting hardware,MountingHole:MountingHole_2.2mm_M2,Optional screws and standoffs
+2,-,1x20 2.54 mm male header,-,Pico connections
+2,-,1x20 2.54 mm socket,-,Optional for a removable Pico
+4,-,1u MX-compatible keycap,-,Choose preferred profile
+1,-,Micro-USB data cable,-,For original Raspberry Pi Pico

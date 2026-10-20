@@ -1,0 +1,39 @@
+name: Hardware issue
+description: Report a PCB, schematic, assembly, or manufacturing problem
+title: "hardware: "
+labels: [hardware]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the electrical or mechanical issue.
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage
+      options:
+        - Schematic review
+        - PCB review
+        - Manufacturer preview
+        - Assembly
+        - Hardware testing
+    validations:
+      required: true
+  - type: input
+    id: revision
+    attributes:
+      label: Revision or commit
+      placeholder: Commit SHA or board order date
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add measurements, continuity results, photos, or viewer screenshots.
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed change
+      description: Optional—describe a fix or improvement.

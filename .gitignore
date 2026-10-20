@@ -1,0 +1,23 @@
+# Build outputs
+/build*/
+/cmake-build-*/
+*.bin
+*.dis
+*.elf
+*.hex
+*.map
+*.uf2
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# KiCad local state and autosaves
+*.kicad_prl
+*.lck
+~*.lck
+*-backups/
+_autosave-*
+*.bak

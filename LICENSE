@@ -1,0 +1,12 @@
+This repository is made available under two permissive licenses:
+
+1. Hardware design source and fabrication outputs under `hardware/` are
+   licensed under the CERN Open Hardware Licence Version 2 - Permissive
+   (CERN-OHL-P-2.0). The complete text is in LICENSES/CERN-OHL-P-2.0.txt.
+
+2. Firmware, build files, scripts, documentation, and repository automation
+   are licensed under the MIT License. The complete text is in
+   LICENSES/MIT.txt.
+
+Licensing is scoped by file path as described above; the two licenses are not
+additional terms applied simultaneously to every file.

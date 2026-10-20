@@ -1,0 +1,49 @@
+name: Firmware build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out firmware
+        uses: actions/checkout@v4
+
+      - name: Check out Pico SDK 2.3.1
+        uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: 2.3.1
+          path: pico-sdk
+          submodules: recursive
+
+      - name: Install Arm toolchain and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-arm-none-eabi libnewlib-arm-none-eabi ninja-build
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPICO_BOARD=pico -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk"
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Upload UF2
+        uses: actions/upload-artifact@v4
+        with:
+          name: macropad-uf2
+          path: build/macropad.uf2
+          if-no-files-found: error

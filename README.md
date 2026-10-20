@@ -1,115 +1,133 @@
 # RP2040 Custom 2x2 USB Mechanical Macropad
 
+[![Firmware build](https://github.com/codejupiter/rp2040-macropad/actions/workflows/build.yml/badge.svg)](https://github.com/codejupiter/rp2040-macropad/actions/workflows/build.yml)
 ![RP2040](https://img.shields.io/badge/MCU-RP2040-C51A4A?style=flat-square)
 ![C++17](https://img.shields.io/badge/firmware-C%2B%2B17-00599C?style=flat-square&logo=cplusplus)
 ![TinyUSB](https://img.shields.io/badge/USB-TinyUSB_HID-6F42C1?style=flat-square)
-![KiCad](https://img.shields.io/badge/PCB-KiCad_10-314CB0?style=flat-square&logo=kicad)
-![PCB](https://img.shields.io/badge/board-58_x_97_mm-E31B23?style=flat-square)
+![KiCad 10](https://img.shields.io/badge/PCB-KiCad_10-314CB0?style=flat-square&logo=kicad)
+![Open hardware](https://img.shields.io/badge/hardware-CERN--OHL--P--2.0-E31B23?style=flat-square)
 
-A compact, purpose-built USB mechanical macropad based on the Raspberry Pi Pico and RP2040. The project combines a diode-isolated 2x2 mechanical switch matrix, a custom two-layer KiCad PCB, and native USB HID keyboard firmware written with the official Raspberry Pi Pico C/C++ SDK and TinyUSB.
+<p align="center">
+  <img src="docs/images/macropad-3d-render.png" alt="3D render of the red 2x2 RP2040 macropad PCB" width="760">
+</p>
 
-The finished macropad enumerates as a standard keyboard. It requires no desktop application, background service, or custom host driver.
+A compact, open-hardware USB macropad built around the Raspberry Pi Pico. Four MX-compatible switches, one diode per key, and native TinyUSB HID firmware create a driverless keyboard that works on macOS, Windows, Linux, and other USB HID hosts.
 
-## Overview
+## At a glance
 
-| Area | Specification |
+| | |
 | --- | --- |
-| Microcontroller | Raspberry Pi Pico with RP2040 |
-| Input layout | 2x2 mechanical switch matrix |
-| Switch isolation | One 1N4148 diode per switch for anti-ghosting |
-| USB interface | TinyUSB HID boot keyboard |
-| Firmware | C++17 with the official Pico SDK |
-| PCB | 58 x 97 mm, two copper layers, red solder mask |
-| Design tools | KiCad |
-| Host requirements | None beyond standard USB HID support |
+| Microcontroller | Raspberry Pi Pico / RP2040 |
+| Layout | 2x2, standard 19.05 mm key pitch |
+| Matrix pins | Rows: GP0, GP1 · Columns: GP6, GP7 |
+| Switch isolation | Four 1N4148 diodes |
+| USB | TinyUSB HID boot keyboard |
+| Firmware | C++17, official Raspberry Pi Pico SDK |
+| PCB | 58 x 97 mm · 2 layers · 1.6 mm FR-4 · red solder mask |
+| Host software | None |
 
-### Highlights
+## Features
 
-- Four independently mapped mechanical keys
-- Diode-isolated matrix for reliable multi-key input
-- Debounced matrix scanning with rows driven low only while sampled
-- Standard USB HID keyboard reports with no custom driver
+- Four independently programmable mechanical keys
+- Diode-isolated matrix with debounced multi-key input
+- Standard USB keyboard reports—no driver or background application
 - Pico unique-ID-based USB serial number
-- Remote-wakeup support when permitted by the host
-- Project-local TinyUSB configuration propagated through CMake
-- USB stdio disabled to avoid collisions with the custom TinyUSB device stack
-- Automated flashing through `picotool` or the Pico's mounted BOOTSEL volume
-- KiCad schematic, routed PCB, and manufacturer-ready Gerber/drill outputs
+- USB remote wake when the host permits it
+- Project-local TinyUSB configuration propagated correctly through CMake
+- USB stdio disabled to prevent a second device stack from colliding with HID
+- One-command build and automatic `picotool`/BOOTSEL flashing
+- Editable KiCad source, clean design exports, and ready-to-order fabrication files
+- Automated firmware build on every push and pull request
 
-## Hardware Architecture
+## Design
 
-The keyboard matrix uses two row nets and two column nets. Each column is read as an input with an internal pull-up. During scanning, the firmware drives one row low at a time and samples both columns; inactive rows return to a high-impedance state.
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>Schematic</strong></td>
+    <td width="50%" align="center"><strong>Routed PCB</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/schematic.svg" alt="Macropad KiCad schematic"></td>
+    <td><img src="docs/images/pcb-layout.svg" alt="Macropad routed PCB layout"></td>
+  </tr>
+</table>
 
-Each switch is wired in series with a 1N4148 diode. The diode's **anode faces the switch** and its **cathode (striped end) faces the row net**. This direction allows a pulled-up column to discharge through a pressed switch into the selected low row while preventing reverse-current paths through neighboring switches.
+The columns are inputs with the Pico's internal pull-ups enabled. During a scan, the firmware drives one row low, samples both columns, then returns that row to high impedance before selecting the next row.
 
 ```text
-                    COL0                    COL1
-                      |                       |
-                 +----+----+             +----+----+
-                 |   SW1   |             |   SW2   |
-                 +----+----+             +----+----+
-                      |                       |
-                    |>| D1                  |>| D2
-                      |                       |
-                      +--------- ROW0 --------+
-
-                 +----+----+             +----+----+
-                 |   SW3   |             |   SW4   |
-                 +----+----+             +----+----+
-                      |                       |
-                    |>| D3                  |>| D4
-                      |                       |
-                      +--------- ROW1 --------+
+COL0 ── SW1 ── A D1 K ── ROW0
+COL1 ── SW2 ── A D2 K ── ROW0
+COL0 ── SW3 ── A D3 K ── ROW1
+COL1 ── SW4 ── A D4 K ── ROW1
 ```
 
-> **Diode orientation:** the bar in the diode symbol represents the cathode and corresponds to the painted stripe on a physical 1N4148.
+The diode cathode—the end marked by the stripe—faces the row net. The PCB silkscreen marks that pad with `K`.
 
-## Bill of Materials
+### Pin map
 
-| Qty. | Reference | Component | Notes |
+| Matrix net | Pico GPIO | Pico physical pin | Keys |
+| --- | ---: | ---: | --- |
+| `ROW0` | GP0 | 1 | SW1, SW2 |
+| `ROW1` | GP1 | 2 | SW3, SW4 |
+| `COL0` | GP6 | 9 | SW1, SW3 |
+| `COL1` | GP7 | 10 | SW2, SW4 |
+
+## Repository layout
+
+```text
+.
+├── CMakeLists.txt              Firmware build definition
+├── main.cpp                    Matrix scanner and USB HID device
+├── tusb_config.h               TinyUSB device configuration
+├── flash_macropad.sh           Automatic flashing watcher
+├── hardware/
+│   ├── MacroPad.kicad_pro      KiCad project
+│   ├── MacroPad.kicad_sch      Schematic source
+│   ├── MacroPad.kicad_pcb      PCB source
+│   ├── BOM.csv                 Bill of materials
+│   ├── manufacturing/          Ready-to-order Gerber/drill package
+│   └── reports/                ERC and DRC reports
+└── docs/
+    ├── ASSEMBLY.md             Assembly and bring-up guide
+    └── images/                 Generated design visuals
+```
+
+## Bill of materials
+
+| Qty. | Reference | Part | Notes |
 | ---: | --- | --- | --- |
-| 1 | A1 | Raspberry Pi Pico | RP2040 module; Pico or pin-compatible original-form-factor board |
-| 4 | SW1-SW4 | MX-compatible mechanical switch | PCB-mount or plate-mount, depending on enclosure design |
-| 4 | D1-D4 | 1N4148 small-signal diode | DO-35 through-hole package |
-| 4 | K1-K4 | MX-compatible keycap | Any preferred profile and legend |
-| 2 | J1-J2 | 1x20, 2.54 mm headers | Use sockets for a removable Pico |
-| 1 | PCB | Custom two-layer PCB | 58 x 97 mm, 1.6 mm FR-4 recommended, red solder mask |
-| 4 | H1-H4 | M2 hardware | Optional screws and standoffs for a case or baseplate |
-| 1 | — | USB cable | Match the connector fitted to the selected Pico revision |
+| 1 | A1 | Raspberry Pi Pico | Original Pico form factor, RP2040 |
+| 4 | SW1–SW4 | MX-compatible switch | PCB-mount or plate-mount |
+| 4 | D1–D4 | 1N4148 diode | DO-35, 7.62 mm pitch |
+| 4 | — | 1u keycap | Any MX-compatible profile |
+| 2 | — | 1x20, 2.54 mm male header | Pico connections |
+| 2 | — | 1x20, 2.54 mm socket | Optional; makes the Pico removable |
+| 4 | H1–H4 | M2 screw and standoff | Optional case/baseplate mounting |
+| 1 | — | USB data cable | Micro-USB for the original Pico |
 
-## KiCad Schematic and PCB Design
+The machine-readable version is in [`hardware/BOM.csv`](hardware/BOM.csv).
 
-The KiCad design contains the complete switch matrix, four isolation diodes, the Raspberry Pi Pico module footprint, a closed `Edge.Cuts` outline, front and back copper routing, and four M2 mounting holes.
+## Build the firmware
 
-Key manufacturing characteristics:
+### Requirements
 
-- **Board size:** 58 x 97 mm
-- **Layer count:** 2
-- **Copper routing:** front and back
-- **Solder mask:** red
-- **Switch spacing:** standard 19.05 mm keyboard pitch
-- **Mounting:** four M2 non-plated holes
-- **Validation:** zero unrouted connections, shorts, or copper-clearance errors
+- CMake 3.13 or newer
+- Ninja or Make
+- Arm GNU Toolchain for `arm-none-eabi`
+- Official [Raspberry Pi Pico C/C++ SDK](https://github.com/raspberrypi/pico-sdk) with submodules
 
-The fabrication package should include:
+```bash
+git clone https://github.com/codejupiter/rp2040-macropad.git
+cd rp2040-macropad
 
-- Front and back copper
-- Front and back solder mask
-- Front and back silkscreen
-- `Edge.Cuts`
-- Plated through-hole drill file
-- Non-plated through-hole drill file
+export PICO_SDK_PATH=/absolute/path/to/pico-sdk
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
 
-Always inspect the Gerbers in an independent viewer before ordering. Confirm the board dimensions, drill separation, switch orientation, Pico USB access, and diode polarity against the assembled hardware.
+The flashable image is written to `build/macropad.uf2`. The build also emits ELF, BIN, HEX, disassembly, and linker-map files for debugging.
 
-## Firmware
-
-The firmware is intentionally small and direct:
-
-- `main.cpp` implements matrix scanning, debouncing, USB descriptors, keyboard reports, and remote wakeup.
-- `tusb_config.h` configures the RP2040's native USB controller as a full-speed TinyUSB device with one HID interface.
-- `CMakeLists.txt` propagates the custom TinyUSB configuration to the SDK build and disables Pico USB/UART stdio.
-- `flash_macropad.sh` watches for a connected Pico and flashes the generated UF2 automatically.
+### Customize the keys
 
 The default keymap sends `A`, `B`, `C`, and `D`:
 
@@ -120,118 +138,56 @@ constexpr uint8_t kKeymap[2][2] = {
 };
 ```
 
-Edit `kKeymap` in `main.cpp` to assign media controls, modifiers, navigation keys, shortcuts, or application-specific commands supported by the HID report descriptor.
+Edit `kKeymap` in [`main.cpp`](main.cpp), rebuild, and flash again. The current HID descriptor supports ordinary six-key-rollover keyboard usages and modifiers.
 
-> The example USB VID/PID values are intended for development. Obtain an appropriate VID/PID allocation before distributing a commercial product.
+> The example USB VID/PID is suitable for development, not for a commercial product. Obtain an appropriate allocation before distributing hardware at scale.
 
-## Firmware Build Instructions
+## Flash the Pico
 
-### Prerequisites
-
-- CMake 3.13 or newer
-- A C/C++ build tool supported by CMake, such as Ninja or Make
-- Arm GNU Toolchain for `arm-none-eabi`
-- The official [Raspberry Pi Pico C/C++ SDK](https://github.com/raspberrypi/pico-sdk), including its submodules
-
-Point `PICO_SDK_PATH` to the SDK installation or place `pico_sdk_import.cmake` beside this project's `CMakeLists.txt`.
-
-### Configure and build
+The included watcher waits for a Pico, prefers a USB-capable `picotool`, and falls back to copying the UF2 to a mounted `RPI-RP2` or `RP2350` BOOTSEL volume.
 
 ```bash
-export PICO_SDK_PATH=/absolute/path/to/pico-sdk
-
-cmake -S . -B build-full \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DPICO_SDK_PATH="$PICO_SDK_PATH"
-
-cmake --build build-full --parallel
+./flash_macropad.sh
 ```
 
-The primary flash image is generated at:
-
-```text
-build-full/pico_macropad.uf2
-```
-
-The build also emits ELF, BIN, HEX, disassembly, and linker-map artifacts for debugging and inspection.
-
-## Flashing and Usage
-
-### Automated flashing
-
-Make the watcher executable once, then launch it with the UF2 path:
+If the Pico is not detected automatically, unplug it, hold **BOOTSEL**, reconnect USB, then release the button. You can also pass a different UF2 explicitly:
 
 ```bash
-chmod +x ./flash_macropad.sh
-./flash_macropad.sh ./build-full/pico_macropad.uf2
+./flash_macropad.sh /path/to/firmware.uf2
 ```
 
-The script uses the first available method:
+After flashing, the Pico reboots and enumerates as `RP2040 2x2 Macropad`. See the [assembly and bring-up guide](docs/ASSEMBLY.md) for first-power checks.
 
-1. A USB-capable `picotool` installation, using verified load and reboot options.
-2. The operating system's mounted `RPI-RP2` or `RP2350` BOOTSEL volume.
+## Manufacture the PCB
 
-Leave the watcher running, hold **BOOTSEL** while connecting the Pico if required, and release it once the drive appears. The script flashes the UF2, flushes filesystem buffers, and exits after the Pico reboots.
+The ready-to-upload archive is [`hardware/manufacturing/macropad_gerbers.zip`](hardware/manufacturing/macropad_gerbers.zip). It contains both copper layers, both mask layers, both silkscreen layers, the board outline, and separate plated/non-plated drill files.
 
-To change the polling interval:
+Before ordering, open the archive in your manufacturer's Gerber viewer and confirm:
 
-```bash
-PICO_FLASH_POLL_SECONDS=0.25 ./flash_macropad.sh ./build-full/pico_macropad.uf2
-```
+- 58 x 97 mm finished dimensions
+- two copper layers and 1.6 mm FR-4
+- red solder mask and white silkscreen
+- plated Pico/switch/diode holes and non-plated M2 holes
+- correct diode polarity and accessible Pico USB connector
 
-### Manual flashing
+Source and fabrication details are documented in [`hardware/README.md`](hardware/README.md).
 
-1. Disconnect the Pico.
-2. Hold the **BOOTSEL** button.
-3. Connect USB while continuing to hold BOOTSEL.
-4. Release the button when the `RPI-RP2` volume appears.
-5. Copy `pico_macropad.uf2` onto the mounted volume.
+## Validation status
 
-The drive disconnects automatically when flashing completes.
+- Firmware: clean release build with Pico SDK 2.3.1
+- Schematic ERC: 0 errors, 0 warnings
+- PCB DRC: 0 shorts, 0 clearance errors, 0 unrouted connections
+- Fabrication archive: integrity checked; 9 Gerber/drill files
 
-### Using the macropad
-
-After reboot, the board appears as a standard USB keyboard. No host-side installation is required on macOS, Windows, Linux, or other systems with USB HID keyboard support. Pressing a switch sends the corresponding key from `kKeymap`; releasing it sends an updated keyboard report.
-
-## Troubleshooting
-
-### TinyUSB reports that `CFG_TUD_RHPORT0_MODE` or `CFG_TUD_RHPORT1_MODE` is undefined
-
-Confirm that:
-
-- `tusb_config.h` defines `CFG_TUSB_RHPORT0_MODE` and its compatibility alias.
-- `CFG_TUSB_CONFIG_FILE=\"tusb_config.h\"` is exported by the interface target in `CMakeLists.txt`.
-- The project directory is included in TinyUSB's compile-time include path.
-- `pico_enable_stdio_usb(... 0)` remains disabled for this custom device configuration.
-- The build directory is deleted or reconfigured after changing TinyUSB settings.
-
-### The Pico is not detected by the flashing script
-
-- Use a data-capable USB cable.
-- Enter BOOTSEL mode before connecting the cable.
-- Check that `RPI-RP2` appears in Finder, Explorer, or your Linux mount directory.
-- Pass the UF2 path explicitly if using a non-default build directory.
-- If using `picotool`, confirm that it was built with USB/libusb support and exposes the `load` command.
-
-### Keys are missing, swapped, or remain pressed
-
-- Verify that firmware row/column constants match the PCB nets.
-- Check diode polarity; each cathode stripe must face its row net.
-- Inspect switch and header solder joints.
-- Confirm that the correct Pico pins are seated in the PCB headers.
-- Increase the debounce interval if a particular switch is unusually noisy.
+The stored DRC report includes library-difference advisories caused by intentionally edited reference/value text positions. They do not represent electrical or manufacturing errors.
 
 ## Contributing
 
-Issues and pull requests are welcome. When proposing hardware changes, include updated KiCad source files and regenerated manufacturing outputs. Firmware changes should build cleanly with the official Pico SDK and preserve standard USB HID behavior.
+Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening an issue or pull request. Hardware changes should include updated KiCad sources, regenerated exports, fresh ERC/DRC reports, and inspected manufacturing outputs.
 
-Before submitting a change:
+## License
 
-1. Build the firmware from a clean build directory.
-2. Test every switch individually and in multi-key combinations.
-3. Run KiCad ERC and DRC.
-4. Inspect regenerated Gerber and drill outputs.
-5. Document any pin-map, footprint, USB descriptor, or BOM changes.
+Firmware, scripts, and documentation are released under the [MIT License](LICENSES/MIT.txt). Hardware design sources and fabrication files are released under the [CERN Open Hardware Licence Version 2 – Permissive](LICENSES/CERN-OHL-P-2.0.txt). See [`LICENSE`](LICENSE) for the scope of each license.
 
 ---
 

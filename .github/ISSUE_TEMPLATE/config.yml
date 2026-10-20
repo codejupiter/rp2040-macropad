@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Raspberry Pi Pico SDK documentation
+    url: https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html
+    about: Check official SDK setup and toolchain documentation.

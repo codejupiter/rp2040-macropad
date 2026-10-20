@@ -1,0 +1,7 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "Button_Switch_Keyboard") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Button_Switch_Keyboard.pretty") (options "") (descr "KiCad keyboard switch footprints"))
+	(lib (name "Diode_THT") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Diode_THT.pretty") (options "") (descr "KiCad through-hole diode footprints"))
+	(lib (name "Module") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Module.pretty") (options "") (descr "KiCad module footprints"))
+	(lib (name "MountingHole") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/MountingHole.pretty") (options "") (descr "KiCad mounting-hole footprints"))
+)
