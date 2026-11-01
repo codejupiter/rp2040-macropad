@@ -11,7 +11,7 @@
   <img src="docs/images/macropad-3d-render.png" alt="3D render of the red 2x2 RP2040 macropad PCB" width="760">
 </p>
 
-A compact, open-hardware USB macropad built around the Raspberry Pi Pico. Four MX-compatible switches, one diode per key, and native TinyUSB HID firmware create a driverless keyboard that works on macOS, Windows, Linux, and other USB HID hosts.
+A compact, open-hardware USB macropad built around the Raspberry Pi Pico. Four MX-compatible switches, one diode per key, and native TinyUSB HID firmware create a driverless keyboard that works on macOS, Windows, Linux, and other USB HID hosts. The included app-launcher configuration targets macOS and can be replaced with any HID shortcuts you prefer.
 
 ## At a glance
 
@@ -136,18 +136,20 @@ cmake --build build --parallel
 
 The flashable image is written to `build/macropad.uf2`. The build also emits ELF, BIN, HEX, disassembly, and linker-map files for debugging.
 
-### Customize the keys
+### Default app shortcuts
 
-The default keymap sends `A`, `B`, `C`, and `D`:
+The included firmware turns the physical 2x2 grid into a macOS application launcher:
 
-```cpp
-constexpr uint8_t kKeymap[2][2] = {
-    {HID_KEY_A, HID_KEY_B},
-    {HID_KEY_C, HID_KEY_D},
-};
-```
+| Key | Position | Action |
+| --- | --- | --- |
+| SW1 | Top left | Open KiCad with Spotlight |
+| SW2 | Top right | Open Visual Studio Code with Spotlight |
+| SW3 | Bottom left | Open `github.com/codejupiter` in Safari |
+| SW4 | Bottom right | Open Codex with Spotlight |
 
-Edit `kKeymap` in [`main.cpp`](main.cpp), rebuild, and flash again. The current HID descriptor supports ordinary six-key-rollover keyboard usages and modifiers.
+SW1, SW2, and SW4 send Command+Space, type the application name, and press Enter. SW3 opens Safari, focuses the address bar, and enters the GitHub profile URL. Spotlight must use its standard Command+Space shortcut and the applications must be installed under searchable names. Presses made while another macro is running are queued and played in grid order.
+
+To customize the actions, edit `kKicadMacro`, `kVsCodeMacro`, `kGitHubMacro`, and `kCodexMacro` in [`main.cpp`](main.cpp), then rebuild and flash. The non-blocking macro engine supports key taps with modifiers, text entry, and timed delays. Because the device sends standard USB HID keyboard reports, no host-side driver or background utility is required.
 
 > The example USB VID/PID is suitable for development, not for a commercial product. Obtain an appropriate allocation before distributing hardware at scale.
 

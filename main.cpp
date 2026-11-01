@@ -16,13 +16,92 @@ constexpr std::size_t kColumnCount = 2;
 constexpr uint kRowPins[kRowCount] = {0, 1};
 constexpr uint kColumnPins[kColumnCount] = {6, 7};
 
-// Change these four usages to whatever shortcuts the macropad should send.
-constexpr uint8_t kKeymap[kRowCount][kColumnCount] = {
-    {HID_KEY_A, HID_KEY_B},
-    {HID_KEY_C, HID_KEY_D},
+constexpr uint32_t kDebounceMs = 5;
+constexpr uint32_t kCharacterGapMs = 18;
+
+enum class MacroActionType : uint8_t {
+    kTap,
+    kText,
+    kDelay,
+    kEnd,
 };
 
-constexpr uint32_t kDebounceMs = 5;
+struct MacroAction {
+    MacroActionType type;
+    uint8_t modifier;
+    uint8_t keycode;
+    uint16_t delay_ms;
+    const char* text;
+};
+
+constexpr MacroAction tap(uint8_t modifier,
+                          uint8_t keycode,
+                          uint16_t delay_ms = 100) {
+    return {MacroActionType::kTap, modifier, keycode, delay_ms, nullptr};
+}
+
+constexpr MacroAction text(const char* value) {
+    return {MacroActionType::kText, 0, 0, 0, value};
+}
+
+constexpr MacroAction delay(uint16_t delay_ms) {
+    return {MacroActionType::kDelay, 0, 0, delay_ms, nullptr};
+}
+
+constexpr MacroAction end_macro() {
+    return {MacroActionType::kEnd, 0, 0, 0, nullptr};
+}
+
+constexpr uint8_t kCommandModifier = KEYBOARD_MODIFIER_LEFTGUI;
+
+// SW1: open KiCad through macOS Spotlight.
+constexpr MacroAction kKicadMacro[] = {
+    tap(kCommandModifier, HID_KEY_SPACE, 400),
+    text("kicad"),
+    delay(150),
+    tap(0, HID_KEY_ENTER, 800),
+    end_macro(),
+};
+
+// SW2: open Visual Studio Code through macOS Spotlight.
+constexpr MacroAction kVsCodeMacro[] = {
+    tap(kCommandModifier, HID_KEY_SPACE, 400),
+    text("visual studio code"),
+    delay(150),
+    tap(0, HID_KEY_ENTER, 800),
+    end_macro(),
+};
+
+// SW3: open Safari, focus its address bar, and load the GitHub profile.
+constexpr MacroAction kGitHubMacro[] = {
+    tap(kCommandModifier, HID_KEY_SPACE, 400),
+    text("safari"),
+    delay(150),
+    tap(0, HID_KEY_ENTER, 1200),
+    tap(kCommandModifier, HID_KEY_L, 150),
+    text("https://github.com/codejupiter"),
+    tap(0, HID_KEY_ENTER, 800),
+    end_macro(),
+};
+
+// SW4: open the Codex desktop app through macOS Spotlight.
+constexpr MacroAction kCodexMacro[] = {
+    tap(kCommandModifier, HID_KEY_SPACE, 400),
+    text("codex"),
+    delay(150),
+    tap(0, HID_KEY_ENTER, 800),
+    end_macro(),
+};
+
+constexpr const MacroAction* kMacros[] = {
+    kKicadMacro,
+    kVsCodeMacro,
+    kGitHubMacro,
+    kCodexMacro,
+};
+constexpr std::size_t kMacroCount = sizeof(kMacros) / sizeof(kMacros[0]);
+
+constexpr uint8_t kAsciiToKeycode[128][2] = {HID_ASCII_TO_KEYCODE};
 
 enum : uint8_t {
     kInterfaceHid = 0,
@@ -90,6 +169,126 @@ const char* const kStringDescriptors[] = {
 uint16_t gStringDescriptor[33];
 bool gRemoteWakeupEnabled = false;
 bool gRemoteWakeupSent = false;
+const MacroAction* gActiveMacro = nullptr;
+std::size_t gActionIndex = 0;
+std::size_t gTextIndex = 0;
+uint8_t gPendingMacros = 0;
+bool gMacroKeyDown = false;
+uint32_t gResumeMacroAtMs = 0;
+
+void send_key(uint8_t modifier, uint8_t keycode) {
+    uint8_t keycodes[6] = {keycode, 0, 0, 0, 0, 0};
+    tud_hid_keyboard_report(0, modifier, keycodes);
+}
+
+void release_keys() {
+    const uint8_t keycodes[6] = {};
+    tud_hid_keyboard_report(0, 0, keycodes);
+}
+
+void reset_macro_engine() {
+    gActiveMacro = nullptr;
+    gActionIndex = 0;
+    gTextIndex = 0;
+    gPendingMacros = 0;
+    gMacroKeyDown = false;
+    gResumeMacroAtMs = 0;
+}
+
+void queue_macros(uint8_t pressed_edges) {
+    gPendingMacros |= static_cast<uint8_t>(
+        pressed_edges & ((1u << kMacroCount) - 1u));
+}
+
+void start_next_macro() {
+    if (gActiveMacro != nullptr || gPendingMacros == 0) {
+        return;
+    }
+
+    for (std::size_t index = 0; index < kMacroCount; ++index) {
+        const uint8_t bit = static_cast<uint8_t>(1u << index);
+        if ((gPendingMacros & bit) == 0) {
+            continue;
+        }
+        gPendingMacros &= static_cast<uint8_t>(~bit);
+        gActiveMacro = kMacros[index];
+        gActionIndex = 0;
+        gTextIndex = 0;
+        gMacroKeyDown = false;
+        gResumeMacroAtMs = 0;
+        return;
+    }
+}
+
+bool deadline_reached(uint32_t now_ms, uint32_t deadline_ms) {
+    return static_cast<int32_t>(now_ms - deadline_ms) >= 0;
+}
+
+void macro_task() {
+    start_next_macro();
+    if (gActiveMacro == nullptr || !tud_hid_ready()) {
+        return;
+    }
+
+    const uint32_t now_ms = to_ms_since_boot(get_absolute_time());
+    if (!deadline_reached(now_ms, gResumeMacroAtMs)) {
+        return;
+    }
+
+    const MacroAction& action = gActiveMacro[gActionIndex];
+    if (gMacroKeyDown) {
+        release_keys();
+        gMacroKeyDown = false;
+        if (action.type == MacroActionType::kText) {
+            ++gTextIndex;
+            gResumeMacroAtMs = now_ms + kCharacterGapMs;
+        } else {
+            ++gActionIndex;
+            gResumeMacroAtMs = now_ms + action.delay_ms;
+        }
+        return;
+    }
+
+    switch (action.type) {
+        case MacroActionType::kTap:
+            send_key(action.modifier, action.keycode);
+            gMacroKeyDown = true;
+            break;
+
+        case MacroActionType::kText: {
+            const uint8_t character =
+                static_cast<uint8_t>(action.text[gTextIndex]);
+            if (character == 0) {
+                ++gActionIndex;
+                gTextIndex = 0;
+                break;
+            }
+            if (character >= sizeof(kAsciiToKeycode) ||
+                kAsciiToKeycode[character][1] == 0) {
+                ++gTextIndex;
+                break;
+            }
+            const uint8_t modifier = kAsciiToKeycode[character][0]
+                ? KEYBOARD_MODIFIER_LEFTSHIFT
+                : 0;
+            send_key(modifier, kAsciiToKeycode[character][1]);
+            gMacroKeyDown = true;
+            break;
+        }
+
+        case MacroActionType::kDelay:
+            ++gActionIndex;
+            gResumeMacroAtMs = now_ms + action.delay_ms;
+            break;
+
+        case MacroActionType::kEnd:
+            gActiveMacro = nullptr;
+            gActionIndex = 0;
+            gTextIndex = 0;
+            start_next_macro();
+            break;
+    }
+}
 
 void initialize_matrix() {
     // Rows are normally high impedance. During a scan, one row at a time is
@@ -130,27 +329,10 @@ uint8_t scan_matrix() {
     return pressed;
 }
 
-void send_keyboard_state(uint8_t matrix_state) {
-    uint8_t keycodes[6] = {};
-    std::size_t key_count = 0;
-
-    for (std::size_t row = 0; row < kRowCount; ++row) {
-        for (std::size_t column = 0; column < kColumnCount; ++column) {
-            const std::size_t bit = row * kColumnCount + column;
-            if ((matrix_state & (1u << bit)) != 0 &&
-                key_count < sizeof(keycodes)) {
-                keycodes[key_count++] = kKeymap[row][column];
-            }
-        }
-    }
-
-    tud_hid_keyboard_report(0, 0, keycodes);
-}
-
 void matrix_task() {
     static uint8_t candidate_state = 0;
     static uint8_t stable_state = 0;
-    static uint8_t reported_state = 0xFF;
+    static uint8_t previous_state = 0;
     static uint32_t candidate_since_ms = 0;
 
     const uint8_t raw_state = scan_matrix();
@@ -164,6 +346,10 @@ void matrix_task() {
                    kDebounceMs) {
         stable_state = candidate_state;
         gRemoteWakeupSent = false;
+        const uint8_t pressed_edges = static_cast<uint8_t>(
+            stable_state & static_cast<uint8_t>(~previous_state));
+        queue_macros(pressed_edges);
+        previous_state = stable_state;
     }
 
     if (stable_state != 0 && tud_suspended() && gRemoteWakeupEnabled &&
@@ -172,10 +358,6 @@ void matrix_task() {
         gRemoteWakeupSent = true;
     }
 
-    if (stable_state != reported_state && tud_hid_ready()) {
-        send_keyboard_state(stable_state);
-        reported_state = stable_state;
-    }
 }
 
 }  // namespace
@@ -256,6 +438,7 @@ extern "C" void tud_hid_set_report_cb(uint8_t instance,
 
 extern "C" void tud_mount_cb() {
     gRemoteWakeupSent = false;
+    reset_macro_engine();
 }
 
 extern "C" void tud_suspend_cb(bool remote_wakeup_enabled) {
@@ -279,6 +462,7 @@ int main() {
     while (true) {
         tud_task();
         matrix_task();
+        macro_task();
         tight_loop_contents();
     }
 }
