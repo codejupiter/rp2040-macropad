@@ -63,31 +63,36 @@ constexpr MacroAction kKicadMacro[] = {
     end_macro(),
 };
 
-// SW2: open Visual Studio Code through macOS Spotlight.
+// SW2: open VS Code for the Web in the installed Google Chrome browser.
 constexpr MacroAction kVsCodeMacro[] = {
     tap(kCommandModifier, HID_KEY_SPACE, 400),
-    text("visual studio code"),
+    text("google chrome"),
     delay(150),
+    tap(0, HID_KEY_ENTER, 1200),
+    tap(kCommandModifier, HID_KEY_L, 150),
+    text("https://vscode.dev"),
+    delay(100),
     tap(0, HID_KEY_ENTER, 800),
     end_macro(),
 };
 
-// SW3: open Safari, focus its address bar, and load the GitHub profile.
+// SW3: open Chrome, focus its address bar, and load the GitHub profile.
 constexpr MacroAction kGitHubMacro[] = {
     tap(kCommandModifier, HID_KEY_SPACE, 400),
-    text("safari"),
+    text("google chrome"),
     delay(150),
     tap(0, HID_KEY_ENTER, 1200),
     tap(kCommandModifier, HID_KEY_L, 150),
     text("https://github.com/codejupiter"),
+    delay(100),
     tap(0, HID_KEY_ENTER, 800),
     end_macro(),
 };
 
-// SW4: open the Codex desktop app through macOS Spotlight.
+// SW4: the Codex desktop app is installed under the ChatGPT display name.
 constexpr MacroAction kCodexMacro[] = {
     tap(kCommandModifier, HID_KEY_SPACE, 400),
-    text("codex"),
+    text("chatgpt"),
     delay(150),
     tap(0, HID_KEY_ENTER, 800),
     end_macro(),
@@ -291,6 +296,10 @@ void macro_task() {
 }
 
 void initialize_matrix() {
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    gpio_put(PICO_DEFAULT_LED_PIN, false);
+
     // Rows are normally high impedance. During a scan, one row at a time is
     // driven low, which keeps inactive rows electrically out of the matrix.
     for (uint pin : kRowPins) {
@@ -350,6 +359,10 @@ void matrix_task() {
             stable_state & static_cast<uint8_t>(~previous_state));
         queue_macros(pressed_edges);
         previous_state = stable_state;
+        // Keep the Pico's onboard LED lit while any debounced key is held.
+        // This provides a hardware-level matrix diagnostic even if the host
+        // shortcut or application launch fails.
+        gpio_put(PICO_DEFAULT_LED_PIN, stable_state != 0);
     }
 
     if (stable_state != 0 && tud_suspended() && gRemoteWakeupEnabled &&

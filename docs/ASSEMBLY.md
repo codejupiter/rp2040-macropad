@@ -53,17 +53,18 @@ Test SW1 through SW4 one at a time, allowing each launch sequence to finish:
 | Key | Expected result |
 | --- | --- |
 | SW1 | KiCad opens through macOS Spotlight |
-| SW2 | Visual Studio Code opens through macOS Spotlight |
-| SW3 | Safari opens `https://github.com/codejupiter` |
-| SW4 | Codex opens through macOS Spotlight |
+| SW2 | Chrome opens `https://vscode.dev` |
+| SW3 | Chrome opens `https://github.com/codejupiter` |
+| SW4 | The ChatGPT/Codex desktop app opens through macOS Spotlight |
 
-The default firmware expects Spotlight to use Command+Space. Multiple presses are safe: the firmware queues them and runs each macro in grid order. If the wrong application opens, verify the corresponding Spotlight search manually and adjust the search text or delays in `main.cpp`.
+The default firmware expects Spotlight to use Command+Space. Multiple presses are safe: the firmware queues them and runs each macro in grid order. The Pico's onboard LED should remain on while any switch is held; if it does not, troubleshoot the matrix before changing the host shortcut. If the wrong application opens, verify the corresponding Spotlight search manually and adjust the search text or delays in `main.cpp`.
 
 ## Troubleshooting
 
 - **No USB device:** try a known data cable, inspect the Pico's USB connector, and re-enter BOOTSEL.
 - **One dead key:** inspect that switch and its diode joints, then verify diode polarity.
 - **A row or column is dead:** inspect the relevant Pico header pin and continuity to GP0, GP1, GP6, or GP7.
+- **No onboard LED while pressing a key:** the matrix did not register the press; inspect switch pins, diode polarity, and the matching row/column connection.
 - **Keys are swapped:** confirm the installed firmware uses the pin map and macro order in `main.cpp`.
 - **Spotlight does not open:** enable the Command+Space Spotlight shortcut in macOS System Settings → Keyboard → Keyboard Shortcuts.
 - **A launch sequence types into the wrong window:** increase that macro's launch delay in `main.cpp`, rebuild, and reflash.

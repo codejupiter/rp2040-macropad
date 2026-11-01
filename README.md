@@ -143,11 +143,11 @@ The included firmware turns the physical 2x2 grid into a macOS application launc
 | Key | Position | Action |
 | --- | --- | --- |
 | SW1 | Top left | Open KiCad with Spotlight |
-| SW2 | Top right | Open Visual Studio Code with Spotlight |
-| SW3 | Bottom left | Open `github.com/codejupiter` in Safari |
-| SW4 | Bottom right | Open Codex with Spotlight |
+| SW2 | Top right | Open VS Code for the Web (`vscode.dev`) in Chrome |
+| SW3 | Bottom left | Open `github.com/codejupiter` in Chrome |
+| SW4 | Bottom right | Open the ChatGPT/Codex desktop app with Spotlight |
 
-SW1, SW2, and SW4 send Command+Space, type the application name, and press Enter. SW3 opens Safari, focuses the address bar, and enters the GitHub profile URL. Spotlight must use its standard Command+Space shortcut and the applications must be installed under searchable names. Presses made while another macro is running are queued and played in grid order.
+SW1 and SW4 send Command+Space, type the installed application name, and press Enter. SW2 and SW3 launch Google Chrome, focus the address bar, and enter their URLs. Spotlight must use its standard Command+Space shortcut and the applications must be installed under searchable names. Presses made while another macro is running are queued and played in grid order. The Pico's onboard LED remains lit while a debounced switch is held, providing immediate confirmation that the physical matrix registered the press.
 
 To customize the actions, edit `kKicadMacro`, `kVsCodeMacro`, `kGitHubMacro`, and `kCodexMacro` in [`main.cpp`](main.cpp), then rebuild and flash. The non-blocking macro engine supports key taps with modifiers, text entry, and timed delays. Because the device sends standard USB HID keyboard reports, no host-side driver or background utility is required.
 
