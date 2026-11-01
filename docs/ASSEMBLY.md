@@ -57,7 +57,7 @@ Test SW1 through SW4 one at a time, allowing each launch sequence to finish:
 | SW3 | Chrome opens `https://github.com/codejupiter` |
 | SW4 | The ChatGPT/Codex desktop app opens through macOS Spotlight |
 
-The default firmware expects Spotlight to use Command+Space. Multiple presses are safe: the firmware queues them and runs each macro in grid order. The Pico's onboard LED should remain on while any switch is held; if it does not, troubleshoot the matrix before changing the host shortcut. If the wrong application opens, verify the corresponding Spotlight search manually and adjust the search text or delays in `main.cpp`.
+The default firmware expects Spotlight to use Command+Space. Multiple presses are safe: the firmware queues them and runs each macro in grid order. The Pico's onboard LED flashes three times during startup and should remain on while any switch is held. If the startup flashes work but a key never lights the LED, troubleshoot the matrix before changing the host shortcut. If the wrong application opens, verify the corresponding Spotlight search manually and adjust the search text or delays in `main.cpp`.
 
 ## Troubleshooting
 

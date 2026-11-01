@@ -147,7 +147,7 @@ The included firmware turns the physical 2x2 grid into a macOS application launc
 | SW3 | Bottom left | Open `github.com/codejupiter` in Chrome |
 | SW4 | Bottom right | Open the ChatGPT/Codex desktop app with Spotlight |
 
-SW1 and SW4 send Command+Space, type the installed application name, and press Enter. SW2 and SW3 launch Google Chrome, focus the address bar, and enter their URLs. Spotlight must use its standard Command+Space shortcut and the applications must be installed under searchable names. Presses made while another macro is running are queued and played in grid order. The Pico's onboard LED remains lit while a debounced switch is held, providing immediate confirmation that the physical matrix registered the press.
+SW1 and SW4 send Command+Space, type the installed application name, and press Enter. SW2 and SW3 launch Google Chrome, focus the address bar, and enter their URLs. Spotlight must use its standard Command+Space shortcut and the applications must be installed under searchable names. Presses made while another macro is running are queued and played in grid order. The Pico's onboard LED flashes three times at startup and remains lit while a debounced switch is held, separating firmware/LED failures from matrix wiring failures.
 
 To customize the actions, edit `kKicadMacro`, `kVsCodeMacro`, `kGitHubMacro`, and `kCodexMacro` in [`main.cpp`](main.cpp), then rebuild and flash. The non-blocking macro engine supports key taps with modifiers, text entry, and timed delays. Because the device sends standard USB HID keyboard reports, no host-side driver or background utility is required.
 

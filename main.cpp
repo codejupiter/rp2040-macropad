@@ -130,7 +130,7 @@ const tusb_desc_device_t kDeviceDescriptor = {
     CFG_TUD_ENDPOINT0_SIZE,      // bMaxPacketSize0
     kUsbVid,                     // idVendor
     kUsbPid,                     // idProduct
-    0x0100,                      // bcdDevice
+    0x0101,                      // bcdDevice (launcher + LED diagnostics)
     0x01,                        // iManufacturer
     0x02,                        // iProduct
     0x03,                        // iSerialNumber
@@ -167,7 +167,7 @@ const uint8_t kConfigurationDescriptor[] = {
 const char* const kStringDescriptors[] = {
     nullptr,              // 0: handled separately as language ID
     "Macro Lab",          // 1: manufacturer
-    "RP2040 2x2 Macropad",// 2: product
+    "RP2040 2x2 App Macropad",// 2: product
     nullptr,              // 3: generated from the Pico unique ID
 };
 
@@ -299,6 +299,15 @@ void initialize_matrix() {
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, false);
+
+    // Three startup flashes prove that this firmware image is running and
+    // that the standard Pico onboard LED is available on GPIO 25.
+    for (int flash = 0; flash < 3; ++flash) {
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
+        sleep_ms(150);
+        gpio_put(PICO_DEFAULT_LED_PIN, false);
+        sleep_ms(150);
+    }
 
     // Rows are normally high impedance. During a scan, one row at a time is
     // driven low, which keeps inactive rows electrically out of the matrix.
