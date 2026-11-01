@@ -15,7 +15,7 @@
 2. **Install D1–D4.** Bend each lead to 7.62 mm pitch. Match the diode's painted stripe to the PCB pad marked `K`; the stripe faces the associated row net.
 3. **Solder the diodes.** Tack one lead, confirm the body is flat and polarity is correct, then solder the second lead and trim both.
 4. **Install the Pico headers.** Use sockets on the macropad PCB if you want the Pico removable. Keep both rows square and parallel.
-5. **Orient the Pico.** The Pico USB connector faces the bottom board edge near the `A1` marking. Confirm orientation before soldering.
+5. **Orient the Pico.** With the component side of the macropad PCB facing up and the four switches at the top, the Pico USB connector must point **up toward the switches** and the `USB Cable` silkscreen—not toward the `A1` marking at the bottom edge. Confirm pin 1/GP0 is aligned with footprint pad 1 before soldering. A Pico installed 180° backward can still enumerate over USB, but its GPIO pins will not match the matrix nets.
 6. **Dry-fit the enclosure and plate.** Place the PCB on the four enclosure posts, align the plate's M2 holes, and confirm that the Pico and USB plug clear the large plate opening. Do not force a warped print over populated components.
 7. **Install SW1–SW4 through the plate.** Snap each 1u MX switch into its 14 mm opening, lower the plate and switches onto the PCB, and inspect both switch pins from below. A folded pin can look seated from above while missing its plated hole.
 8. **Solder the switches.** Confirm that every housing sits flat against the plate and that the plate remains parallel to the PCB, then solder both electrical pins per switch.

@@ -80,6 +80,8 @@ The printable [bottom enclosure and switch plate](hardware/mechanical/) are gene
 | `COL0` | GP6 | 9 | SW1, SW3 |
 | `COL1` | GP7 | 10 | SW2, SW4 |
 
+> **Pico orientation:** viewed from the populated side with the switches at the top, the Pico USB connector points toward the switches and the PCB's `USB Cable` label. The `A1` reference is at the opposite end. Installing the Pico 180° backward preserves USB operation but maps the PCB traces to the wrong physical pins, so none of the keys will scan.
+
 ## Repository layout
 
 ```text
