@@ -8,6 +8,10 @@
 *.map
 *.uf2
 
+# Python generator caches
+__pycache__/
+*.py[cod]
+
 # Editors and operating systems
 .DS_Store
 .idea/

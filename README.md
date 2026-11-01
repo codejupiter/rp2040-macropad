@@ -63,6 +63,14 @@ COL1 ── SW4 ── A D4 K ── ROW1
 
 The diode cathode—the end marked by the stripe—faces the row net. The PCB silkscreen marks that pad with `K`.
 
+### Exploded mechanical assembly
+
+<p align="center">
+  <img src="docs/images/macropad-exploded-assembly.gif" alt="Exploded assembly animation showing the enclosure, PCB, plate, switches, and keycaps" width="760">
+</p>
+
+The printable [bottom enclosure and switch plate](hardware/mechanical/) are generated parametrically from the committed KiCad board outline, footprint drills, switch centers, Pico envelope, and M2 mounting holes. The animation shows the correct bottom-to-top stack and uses cyan guides for the shared mounting axes. The four keys are 1u and therefore use no stabilizers.
+
 ### Pin map
 
 | Matrix net | Pico GPIO | Pico physical pin | Keys |
@@ -85,6 +93,7 @@ The diode cathode—the end marked by the stripe—faces the row net. The PCB si
 │   ├── MacroPad.kicad_sch      Schematic source
 │   ├── MacroPad.kicad_pcb      PCB source
 │   ├── BOM.csv                 Bill of materials
+│   ├── mechanical/             Parametric case, plate, STL/STEP files, and generator
 │   ├── manufacturing/          Ready-to-order Gerber/drill package
 │   └── reports/                ERC and DRC reports
 └── docs/

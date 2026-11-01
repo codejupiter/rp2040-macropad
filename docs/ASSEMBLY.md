@@ -16,8 +16,17 @@
 3. **Solder the diodes.** Tack one lead, confirm the body is flat and polarity is correct, then solder the second lead and trim both.
 4. **Install the Pico headers.** Use sockets on the macropad PCB if you want the Pico removable. Keep both rows square and parallel.
 5. **Orient the Pico.** The Pico USB connector faces the bottom board edge near the `A1` marking. Confirm orientation before soldering.
-6. **Install SW1–SW4.** Seat every switch flat against the board before soldering both electrical pins.
-7. **Add optional mounting hardware.** The four corner holes accept M2 hardware.
+6. **Dry-fit the enclosure and plate.** Place the PCB on the four enclosure posts, align the plate's M2 holes, and confirm that the Pico and USB plug clear the large plate opening. Do not force a warped print over populated components.
+7. **Install SW1–SW4 through the plate.** Snap each 1u MX switch into its 14 mm opening, lower the plate and switches onto the PCB, and inspect both switch pins from below. A folded pin can look seated from above while missing its plated hole.
+8. **Solder the switches.** Confirm that every housing sits flat against the plate and that the plate remains parallel to the PCB, then solder both electrical pins per switch.
+9. **Fasten the stack.** Use H1–H4 with M2 hardware of a verified length. Tighten in a diagonal pattern only until the printed plate is held flat.
+10. **Install four 1u keycaps.** Press straight down while supporting the PCB/plate stack. No stabilizers are used because every key is 1u.
+
+### Exploded mechanical reference
+
+![Exploded assembly animation](images/macropad-exploded-assembly.gif)
+
+The layer order from bottom to top is enclosure → populated PCB → switch plate → four MX switches → four 1u keycaps. Cyan guide lines in the animation mark the four shared M2 axes. Download the [MP4 version](images/macropad-exploded-assembly.mp4) for higher-quality playback.
 
 ## Checks before power
 
